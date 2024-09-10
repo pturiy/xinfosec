@@ -1,0 +1,7 @@
+---
+- hosts: rpm-test
+  gather_facts: true
+  become: true 
+  roles:
+    - infoSecRpm
+ #   - rsyslog

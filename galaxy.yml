@@ -1,0 +1,27 @@
+### REQUIRED
+# The namespace of the collection. This can be a company/brand/organization or product namespace under which all
+# content lives. May only contain alphanumeric lowercase characters and underscores. Namespaces cannot start with
+# underscores or numbers and cannot contain consecutive underscores
+namespace: devops
+
+# The name of the collection. Has the same character restrictions as 'namespace'
+name: infosec_agents
+
+version: 1.0.0
+
+readme: README.md
+
+authors:
+- DevOps <devops@consumer.org>
+
+description: A collection that contains roles to be used with Packer to provision AWS AMI images or vSphere VMXT templates
+license:
+- GPL-2.0-or-later
+license_file: ''
+tags: []
+dependencies: {}
+repository: https://stash.consumer.org/projects/devops/repos/infosec-agents/browse
+documentation: https://stash.consumer.org/projects/devops/repos/infosec-agents/browse
+homepage: https://stash.consumer.org/projects/devops/repos/infosec-agents/browse
+issues: https://stash.consumer.org/projects/devops/repos/infosec-agents/browse
+build_ignore: []

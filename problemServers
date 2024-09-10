@@ -1,0 +1,41 @@
+#### RPM
+ECQ Prod - Good
+
+ECQ Stage - Bad
+avaecqdb4stg1.crinfra.net
+
+ECQ LE - 1 Bad
+crecqfeeds1dev1.crinfra.net
+
+Content Prod - 5 Bad
+avacrpublish3prod1.crinfra.net
+crcarsetl1prod1.crinfra.net
+crdataappprod.crinfra.net
+crdeanalytics1prod1.crinfra.net
+cundpauthor1.crinfra.net
+
+Content Stage - 2 Bad
+crdataappstage.crinfra.net
+crdeanalytics1stg1.crinfra.net
+
+Content LE - 1 Bad
+docker-worker-dev-yonkers-01.crinfra.net - Deb - Stop al-agent stalls
+
+Rancher - Good
+
+Devops - 2 Bad
+al-logic-dev1.crinfra.net
+
+
+avacrpublish3prod1.crinfra.net
+crcontentdev2new.crinfra.net <-- Yum broken
+crdataappprod.crinfra.net
+crdataappstage.crinfra.net <-- Issue talking to satellite
+cundpauthor1.crinfra.net <-- Missing libselinux-python
+
+
+rm /usr/lib64/tableausdk/libcurl.so.4
+ln -sf /usr/lib64/libcurl.so.4.3.0 /usr/lib64/tableausdk/libcurl.so.4
+
+rm -fr /var/cache/yum/*
+yum clean all
