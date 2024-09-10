@@ -1,0 +1,33 @@
+---
+- name: Remove Existing CrowdStrike Falcon Artifacts
+  file:
+    state: absent
+    path: "/tmp/falcon-sensor-{{ crowdstrike_version_rpm }}.rpm
+  when: ansible_distribution == 'CentOS' or ansible_distribution == 'RedHat' or ansible_distribution == 'OracleLinux'
+
+- name: Download CrowdStrike Falcon From Nexus
+  maven_artifact:
+    group_id: crowdstrike
+    artifact_id: falcon-sensor
+    version: "{{ crowdstrike_version_rpm }}"
+    extension: rpm
+    classifier: ''
+    repository_url: http://nexus.crinfra.net:8081/nexus/repository/thirdparty
+    dest: /tmp/falcon-sensor-{{ crowdstrike_version_rpm }}.rpm
+  when: ansible_distribution == 'CentOS' or ansible_distribution == 'RedHat' or ansible_distribution == 'OracleLinux'
+
+- name: Install CrowdStrike Falcon
+  yum:
+    name: "/tmp/falcon-sensor-{{ crowdstrike_version_rpm }}.rpm"
+    state: present
+  when: ansible_distribution == 'CentOS' or ansible_distribution == 'RedHat' or ansible_distribution == 'OracleLinux'
+
+- name: Activate CrowdStrike Falcon
+  command: /opt/CrowdStrike/falconctl -s --cid={{ crowdstrike_cid }}
+  when: ansible_distribution == 'CentOS' or ansible_distribution == 'RedHat' or ansible_distribution == 'OracleLinux'
+
+- name: Start CrowdStrike Falcon
+  systemd:
+    name: falcon-sensor
+    state: started
+  when: ansible_distribution == 'CentOS' or ansible_distribution == 'RedHat' or ansible_distribution == 'OracleLinux'

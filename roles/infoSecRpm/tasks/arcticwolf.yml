@@ -1,0 +1,61 @@
+---
+  - name: Remove Existing Arctic Wolf Artifacts
+    file:
+      state: absent
+      path: "/tmp/{{ item }}"
+    with_items:
+      - "{{ arcticwolf_agent_rpm }}"
+      - arcticwolfagent-2022.03.54-1.x86_64.rpm
+      - customer.json
+  
+  - name: Install Python-lmxl  (If it's missing)
+    yum:
+      name: python-lxml
+      state: present
+
+  - name: Download Arctic Wolf Agent From Nexus
+    maven_artifact:
+      group_id: arctic-wolf
+      artifact_id: arcticwolfagent-linux_rpm
+      version: 2022-03_52-consumerreports
+      extension: zip
+      classifier: ''
+      repository_url: http://nexus.crinfra.net:8081/nexus/repository/thirdparty
+      dest: /tmp/{{ arcticwolf_agent_rpm }}
+
+  - name: Install unzip package (if not already installed)
+    yum:
+      name: unzip
+      state: present
+
+  - name: Unzip Arctic Wolf Agent
+    command: "unzip -o /tmp/{{ arcticwolf_agent_rpm }} -d /tmp/"
+
+  - name: Install Arctic Wolf Agent using YUM
+    environment: 
+      AWN_CUSTOMER_JSON: /tmp/customer.json
+    yum:
+      name: /tmp/arcticwolfagent-2022.03.54-1.x86_64.rpm
+      state: present
+    register: yum_install_result
+    ignore_errors: yes
+
+  - name: Install Arctic Wolf Agent using RPM as fallback
+    environment: 
+      AWN_CUSTOMER_JSON: /tmp/customer.json
+    shell: rpm -Uvh /tmp/arcticwolfagent-2022.03.54-1.x86_64.rpm
+    register: rpm_install_result
+    ignore_errors: yes
+    when: yum_install_result is failed
+    
+  - name: Enable Arctic Wolf Agent Service
+    systemd:
+      name: arcticwolfagent
+      enabled: yes
+      state: started
+
+  - name: Verify Arctic Wolf Agent Service Status
+    systemd:
+      name: arcticwolfagent
+      state: started
+

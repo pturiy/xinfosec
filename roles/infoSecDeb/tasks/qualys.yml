@@ -1,0 +1,54 @@
+---
+- name: remove qualys agent
+  apt:
+     name: qualys-cloud-agent
+     state: absent
+  ignore_errors: yes
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+
+- name: Retrieve qualys rpm from nexus
+  maven_artifact:
+    group_id: qualys
+    artifact_id: qualys-agent
+    version: 2.6.0-88
+    extension: deb
+    classifier: ''
+    repository_url: http://nexus.crinfra.net:8081/nexus/repository/thirdparty
+    dest: /tmp
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+
+- name: Install qualys rpm package
+  apt:
+     deb: /tmp/qualys-agent-2.6.0-88.deb
+     state: present
+  ignore_errors: yes
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+
+- debug:
+    msg: "{{ ansible_facts['bios_version'] }}"
+  register: bios_var
+
+- name: Run qualys cloud agent shell script for Amazon
+  command: /usr/local/qualys/cloud-agent/bin/qualys-cloud-agent.sh "ActivationId={{ qualys_activation_aws }}" "CustomerId={{ qualys_customer }}"
+  ignore_errors: yes
+  when: "('amazon' in ansible_facts['bios_version']) and (ansible_distribution == 'Ubuntu' or ansible_distribution == 'Debian')"
+
+- name: Run qualys cloud agent shell script for Yonkers
+  command: /usr/local/qualys/cloud-agent/bin/qualys-cloud-agent.sh "ActivationId={{ qualys_activation_yonkers }}" "CustomerId={{ qualys_customer }}"
+  ignore_errors: yes
+  when: "('amazon' not in ansible_facts['bios_version']) and (ansible_distribution == 'Ubuntu' or ansible_distribution == 'Debian')"
+
+- name: Create a symbolic link (Bug in script, creates .conf file but app references .properties file)
+  file:
+    src: /etc/qualys/cloud-agent/qualys-cloud-agent.conf
+    dest: /etc/qualys/cloud-agent/qualys-cloud-agent.properties
+    state: link
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+
+- name: restart qualys service
+  systemd:
+    name: "{{ item }}"
+    state: restarted
+  with_items:
+    - qualys-cloud-agent
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'

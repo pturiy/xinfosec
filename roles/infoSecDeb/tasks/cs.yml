@@ -1,0 +1,33 @@
+---
+- name: Remove Existing CrowdStrike Falcon Artifacts
+  file:
+    state: absent
+    path: "/tmp/falcon-sensor-{{ crowdstrike_version_amd }}.deb"
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+
+- name: Download CrowdStrike Falcon From Nexus
+  maven_artifact:
+    group_id: crowdstrike
+    artifact_id: falcon-sensor
+    version: "{{ crowdstrike_version_amd }}"
+    extension: deb
+    classifier: ''
+    repository_url: http://nexus.crinfra.net:8081/nexus/repository/thirdparty
+    dest: /tmp/falcon-sensor-{{ crowdstrike_version_amd }}.deb
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+
+- name: Install CrowdStrike Falcon
+  apt:
+    deb: "/tmp/falcon-sensor-{{ crowdstrike_version_amd }}.deb"
+    state: present
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+
+- name: Activate CrowdStrike Falcon
+  command: /opt/CrowdStrike/falconctl -s -f --cid={{ crowdstrike_cid }}
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+
+- name: Restart CrowdStrike Falcon
+  systemd:
+    name: falcon-sensor
+    state: restarted
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'

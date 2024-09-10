@@ -1,0 +1,12 @@
+---
+- import_tasks: gather_facts.yml
+#- import_tasks: infoSec_dep.yml
+# Ubuntu doesn't have selinux by default
+#- import_tasks: selinux.yml
+#- import_tasks: al.yml
+#- import_tasks: qualys.yml
+#- import_tasks: cs.yml
+- import_tasks: tenable-one.yml
+- import_tasks: arcticwolf.yml
+
+

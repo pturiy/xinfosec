@@ -1,0 +1,29 @@
+---
+- name: Install yum packages
+  yum:
+    name: "{{item}}"
+    state: latest
+  with_items:
+    - unzip
+    - python-lxml
+    - libselinux-python
+  when: ansible_distribution == 'CentOS' or ansible_distribution == 'RedHat' or ansible_distribution == 'OracleLinux'
+
+      #- name: Add AL config to syslog.conf
+      #  blockinfile:
+      #    path: /etc/rsyslog.conf
+      #    state: present
+      #    insertafter: EOF
+      #    block: |
+      #        #Mcafee SIEM
+      #        *.*@@10.95.1.231
+      #        # send logs to AlertLogic
+      #        :msg, contains, "type=SYSCALL" ~
+      #        :msg, contains, "type=EOE" ~
+      #        :msg, contains, "type=PATH" ~
+      #        :msg, contains, "type=CWD" ~
+      #        :msg, contains, "type=EXECVE" ~
+      #        :msg, contains, "type=CRYPTO_KEY_USER" ~
+      #        :msg, contains, "type=AVC" ~
+      #        :msg, contains, "type=SOCKADDR" ~
+      #        *.* @@127.0.0.1:1514;RSYSLOG_FileFormat

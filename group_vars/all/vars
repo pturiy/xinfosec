@@ -1,0 +1,25 @@
+# InfoSec Keys
+al_key: "xxxx"
+
+# Ecom Prod
+qualys_activation_yonkers: "xxxxx-9350-xxxxxxxxxxx-b888-a5808b12372c"
+qualys_activation_aws: "xxxxxx-1467-47d2-xxxx-bcef4d5a0b12"
+qualys_customer: "xxxxxxxxxxxxxx-xxxxxxx-5af6-xxxx-xxxxxx"
+
+# CrowdStrike
+crowdstrike_cid: "xxxxxxxxxxxxxx-FD"
+crowdstrike_secret: "{{ crowdstrike_ynk_lower_envs_secret }}"
+crowdstrike_version_rpm: "7.01.0-15604.el7.x86_64"
+crowdstrike_version_amd: "7.01.0-15604_amd64"
+
+# Tenable-One
+nessus_agent_key: "xxxxxxxxxxxxxxxx"
+nessus_agent_group: "Devops"
+nessus_agent_host: sensor.cloud.tenable.com
+nessus_agent_port: 443
+centos7_x86_64_rpm: "NessusAgent-10.6.3-el7.x86_64.rpm"
+centos8_x86_64_rpm: "NessusAgent-10.6.3-el8.x86_64.rpm"
+
+# Arctic Wolf
+arcticwolf_agent_dpkg: arcticwolfagent-linux_dpkg-2022-03_52-consumerreports.zip
+arcticwolf_agent_rpm: arcticwolfagent-linux_rpm-2022-03_52-consumerreports.zip

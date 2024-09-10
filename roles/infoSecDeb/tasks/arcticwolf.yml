@@ -1,0 +1,54 @@
+---
+  - name: Remove Existing Arctic Wolf Artifacts
+    file:
+        state: absent
+        path: "/tmp/{{ item }}"
+    with_items:
+        - "{{ arcticwolf_agent_dpkg }}"
+        - arcticwolfagent_2022.03.52-1_amd64.deb
+        - customer.json
+
+  - name: Install Python-lmxl  (If it's missing)
+    apt:
+      name: python3-lxml
+      state: present
+
+  - name: Download Arctic Wolf Agent From Nexus
+    maven_artifact:
+        group_id: arctic-wolf
+        artifact_id: arcticwolfagent-linux_dpkg
+        version: 2022-03_52-consumerreports
+        extension: zip
+        classifier: ''
+        repository_url: http://nexus.crinfra.net:8081/nexus/repository/thirdparty
+        dest: /tmp/{{ arcticwolf_agent_dpkg }}
+  
+  - name: Install unzip package (if not already installed)
+    apt:
+      name: unzip
+      state: latest
+  
+  - name: Unzip Arctic Wolf Agent
+    command: "unzip -o /tmp/{{ arcticwolf_agent_dpkg }} -d /tmp/"
+
+  - name: Install Arctic Wolf Agent
+    environment:
+         DEBIAN_FRONTEND: noninteractive
+         AWN_CUSTOMER_JSON: /tmp/customer.json
+    apt:
+        deb: /tmp/arcticwolfagent_2022.03.52-1_amd64.deb
+        state: present
+    register: install_result
+    ignore_errors: yes
+
+  - name: Enable Arctic Wolf Agent Service
+    systemd:
+      name: arcticwolfagent
+      enabled: yes
+      state: started
+
+  - name: Verify Arctic Wolf Agent Service Status
+    systemd:
+      name: arcticwolfagent
+      state: started
+    register: service_status

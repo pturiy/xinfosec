@@ -1,0 +1,5 @@
+- name: Change SELinux to permissive mode
+  selinux:
+    policy: targeted
+    state: disabled
+  when: ansible_distribution == 'CentOS' or ansible_distribution == 'RedHat'

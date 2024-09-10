@@ -1,0 +1,23 @@
+- name: Disable secure cert
+  lineinfile:
+    path: /etc/rhsm/rhsm.conf
+    regexp: '^insecure = 0'
+    line: 'insecure = 1'
+  when: ansible_distribution == 'RedHat'
+
+- name: add new RHEL license
+  command: subscription-manager unregister
+  ignore_errors: yes 
+  when: ansible_distribution == 'RedHat'
+
+- name: add new RHEL license
+  command: subscription-manager register --org="Default_Organization" --activationkey="RedHatandard"
+  ignore_errors: yes
+  when: ansible_distribution == 'RedHat'
+
+- name: Reenable secure cert
+  lineinfile:
+    path: /etc/rhsm/rhsm.conf
+    regexp: '^insecure = 0'
+    line: 'insecure = 1'
+  when: ansible_distribution == 'RedHat'

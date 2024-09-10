@@ -1,0 +1,41 @@
+---
+
+  - name: Remove Existing Nessus(Tenable-One) Artifacts
+    file:
+      state: absent
+      path: "/tmp/NessusAgent-10.6.3-ubuntu1404_amd64.deb"
+  
+  - name: Unlink Existing Nessus(Tenable-One)
+    command: /opt/nessus_agent/sbin/nessuscli agent unlink
+    ignore_errors: yes
+
+  - name: Install Python-lmxl  (If it's missing)
+    apt:
+      name: python3-lxml
+      state: present
+
+  - name: Download Nessus(Tenable-One) Agent From Nexus
+    maven_artifact:
+      group_id: Tenable-One
+      artifact_id: NessusAgent
+      version: 10.6.3-ubuntu1404_amd64
+      extension: deb
+      classifier: ''
+      repository_url: http://nexus.crinfra.net:8081/nexus/repository/thirdparty
+      dest: /tmp/NessusAgent-10.6.3-ubuntu1404_amd64.deb
+
+  - name: Install Nessus(Tenable-One) Agent
+    command: "dpkg -i /tmp/NessusAgent-10.6.3-ubuntu1404_amd64.deb"
+
+  - name: Enable Nessus(Tenable-One) Agent service
+    systemd:
+      name: nessusagent
+      enabled: yes
+
+  - name: Start Nessus(Tenable-One) Agent service
+    service:
+      name: nessusagent
+      state: started
+
+  - name: Link Nessus(Tenable-One) Agent
+    command: /opt/nessus_agent/sbin/nessuscli agent link --key={{ nessus_agent_key }} --groups="{{ nessus_agent_group }}" --host={{ nessus_agent_host }} --port={{ nessus_agent_port }}

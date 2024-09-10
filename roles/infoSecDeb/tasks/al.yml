@@ -1,0 +1,38 @@
+---
+#- name: Retrieve AL rpm from nexus
+#  maven_artifact:
+#    group_id: AlertLogic
+#    artifact_id: al-agent-latest-deb
+#    version: 1
+#   extension: deb
+#    classifier: ''
+#    repository_url: http://nexus.crinfra.net:8081/nexus/repository/thirdparty
+#    dest: /tmp
+#  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+
+- name: Get package
+  command: wget -P /tmp http://nexus.crinfra.net:8081/nexus/repository/thirdparty/AlertLogic/al-agent-latest-deb/1/al-agent-latest-deb-1.deb
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+
+- name: remove old AL deb package
+  apt:
+     name: al-agent
+     state: absent
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+
+- name: Install AL deb package
+  apt:
+     deb: /tmp/al-agent-latest-deb-1.deb
+     state: present
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+
+- name: provision AL key
+  command: /etc/init.d/al-agent provision --key "{{ al_key }}"
+  ignore_errors: yes
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+
+- name: start al-agent services
+  systemd:
+    name: al-agent
+    state: restarted
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'

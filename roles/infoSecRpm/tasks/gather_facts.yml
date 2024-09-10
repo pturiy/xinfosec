@@ -1,0 +1,7 @@
+- name: Collect only certain facts 
+  setup:
+    gather_subset:
+      - all
+      - '!all'
+      #- network
+      #- virtual

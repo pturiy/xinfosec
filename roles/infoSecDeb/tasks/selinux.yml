@@ -1,0 +1,4 @@
+- name: Change SELinux to permissive mode
+  selinux:
+    policy: targeted
+    state: disabled

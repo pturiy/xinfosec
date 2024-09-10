@@ -1,0 +1,44 @@
+---
+- name: remove Qualys agent
+  yum:
+     name: qualys-cloud-agent
+     state: absent
+  ignore_errors: yes
+  when: ansible_distribution == 'CentOS' or ansible_distribution == 'RedHat'
+
+- name: Retrieve qualys rpm from nexus
+  maven_artifact:
+    group_id: qualys
+    artifact_id: qualys-agent
+    version: 2.6.0-88
+    extension: rpm
+    classifier: ''
+    repository_url: http://nexus.crinfra.net:8081/nexus/repository/thirdparty
+    dest: /tmp
+  when: ansible_distribution == 'CentOS' or ansible_distribution == 'RedHat' or ansible_distribution == 'Red Hat'
+
+- name: Install qualys rpm package
+  yum:
+     name: /tmp/qualys-agent-2.6.0-88.rpm
+     state: present
+  ignore_errors: yes
+  when: ansible_distribution == 'CentOS' or ansible_distribution == 'RedHat'
+
+- name: Run qualys cloud agent shell script for Amazon
+  command: /usr/local/qualys/cloud-agent/bin/qualys-cloud-agent.sh "ActivationId={{ qualys_activation_aws }}" "CustomerId={{ qualys_customer }}"
+  ignore_errors: yes
+  when: "{{ ansible_facts['bios_version'] }} is search ('amazon') and ansible_distribution == 'CentOS' or ansible_distribution == 'RedHat' or ansible_distribution == 'Red Hat'"
+
+- name: Run qualys cloud agent shell script for Yonkers
+  command: /usr/local/qualys/cloud-agent/bin/qualys-cloud-agent.sh "ActivationId={{ qualys_activation_yonkers }}" "CustomerId={{ qualys_customer }}"
+  ignore_errors: yes
+  when: "{{ ansible_facts['bios_version'] }} is not search ('amazon') and ansible_distribution == 'CentOS' or ansible_distribution == 'RedHat' or ansible_distribution == 'Red Hat' "
+
+- name: restart qualys service
+  systemd:
+    name: "{{ item }}"
+    state: restarted
+  with_items:
+    - qualys-cloud-agent
+  when:
+    - ansible_distribution == 'CentOS' or ansible_distribution == 'RedHat'

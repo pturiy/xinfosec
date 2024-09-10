@@ -1,0 +1,20 @@
+---
+- name: add alert_logic.conf
+  copy:
+    src: alert_logic.conf
+    dest: /etc/rsyslog.d/alert_logic.conf
+
+- name: Remove old block
+  blockinfile:
+    path: /etc/rsyslog.conf
+    block: ""
+
+- name: Remove unused siem.conf
+  file:
+    path: /etc/rsyslog.d/siem.conf
+    state: absent
+
+- name: rsyslog restart service
+  service:
+    name: rsyslog
+    state: restarted

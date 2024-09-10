@@ -1,0 +1,77 @@
+---
+  - name: Debug ansible_distribution and ansible_distribution_version
+    debug:
+      msg: "Distribution: {{ ansible_distribution }}, Version: {{ ansible_distribution_version }}, Major Version: {{ ansible_distribution_major_version }}, Architecture: {{ ansible_architecture }}"
+
+  - name: Remove Existing Nessus(Tenable-One) Artifacts
+    file:
+      state: absent
+      path: "/tmp/{{ item }}"
+    with_items:
+        - "{{ centos7_x86_64_rpm }}"
+        - "{{ centos8_x86_64_rpm }}"
+
+  - name: Unlink Existing Nessus(Tenable-One)
+    command: /opt/nessus_agent/sbin/nessuscli agent unlink
+    ignore_errors: yes
+  
+  - name: Install Python-lmxl  (If it's missing)
+    yum:
+      name: python-lxml
+      state: present
+
+  - name: Set Nessus Agent Artifact details for CentOS 7 or 7.x (x86_64)
+    set_fact:
+      nessus_agent_artifact:
+        group_id: Tenable-One
+        artifact_id: NessusAgent
+        version: 10.6.3-el7.x86_64
+        extension: rpm
+        classifier: ''
+    when: (ansible_distribution == 'CentOS' or ansible_distribution == 'OracleLinux' or ansible_distribution == 'RedHat') and ansible_distribution_major_version == '7'  and ansible_architecture == 'x86_64'
+
+  - name: Set Nessus Agent Artifact details for CentOS 8 or 8.x (x86_64)
+    set_fact:
+      nessus_agent_artifact:
+        group_id: Tenable-One
+        artifact_id: NessusAgent
+        version: 10.6.3-el8.x86_64
+        extension: rpm
+        classifier: ''
+    when: (ansible_distribution == 'CentOS' or ansible_distribution == 'OracleLinux' or ansible_distribution == 'RedHat') and ansible_distribution_major_version == '8'  and ansible_architecture == 'x86_64'
+
+  - name: Debug nessus_agent_artifact
+    debug:
+      msg: "{{ nessus_agent_artifact }}"
+    when: nessus_agent_artifact is defined
+
+  - name: Download Nessus(Tenable-One) Agent From Nexus
+    maven_artifact:
+        group_id: "{{ nessus_agent_artifact.group_id}}"
+        artifact_id: "{{ nessus_agent_artifact.artifact_id}}"
+        version: "{{ nessus_agent_artifact.version}}"
+        extension: "{{ nessus_agent_artifact.extension}}"
+        classifier: ''
+        repository_url: http://nexus.crinfra.net:8081/nexus/repository/thirdparty
+        dest: "/tmp/{{ nessus_agent_artifact.artifact_id }}-{{ nessus_agent_artifact.version}}.{{ nessus_agent_artifact.extension }}"
+    when: nessus_agent_artifact is defined
+
+  - name: Install Nessus(Tenable-One) Agent
+    command: "yum install -y /tmp/{{ nessus_agent_artifact.artifact_id }}-{{ nessus_agent_artifact.version}}.{{ nessus_agent_artifact.extension }}"
+    when: nessus_agent_artifact is defined
+
+  - name: Enable Nessus(Tenable-One) Agent service
+    systemd:
+      name: nessusagent
+      enabled: yes
+    when: nessus_agent_artifact is defined
+
+  - name: Start Nessus(Tenable-One) Agent service
+    service:
+      name: nessusagent
+      state: started
+    when: nessus_agent_artifact is defined
+
+  - name: Link Nessus(Tenable-One) Agent
+    command: /opt/nessus_agent/sbin/nessuscli agent link --key={{ nessus_agent_key }} --groups="{{ nessus_agent_group }}" --host={{ nessus_agent_host }} --port={{ nessus_agent_port }}
+    when: nessus_agent_artifact is defined

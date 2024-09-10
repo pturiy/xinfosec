@@ -1,0 +1,68 @@
+---
+- name: remove Qualys agent
+  yum:
+     name: qualys-cloud-agent
+     state: absent
+  ignore_errors: yes 
+  when: ansible_distribution == 'CentOS' or ansible_distribution == 'RedHat' or ansible_distribution == 'OracleLinux'
+
+- name: Retrieve qualys rpm from nexus
+  maven_artifact:
+    group_id: qualys
+    artifact_id: qualys-agent
+    version: 2.6.0-88
+    extension: rpm 
+    classifier: ''
+    repository_url: http://nexus.crinfra.net:8081/nexus/repository/thirdparty
+    dest: /tmp
+  when: ansible_distribution == 'CentOS' or ansible_distribution == 'RedHat' or ansible_distribution == 'Red Hat' or ansible_distribution == 'OracleLinux'
+
+- name: Install qualys rpm package
+  yum:
+     name: /tmp/qualys-agent.rpm
+     state: present
+  ignore_errors: yes 
+  when: ansible_distribution == 'CentOS' or ansible_distribution == 'RedHat' or ansible_distribution == 'OracleLinux'
+
+
+- name: stop qualys service
+  systemd:
+    name: "{{ item }}"
+    state: stopped
+  with_items:
+    - qualys-cloud-agent
+  when:
+    - ansible_distribution == 'CentOS' or ansible_distribution == 'RedHat' or ansible_distribution == 'OracleLinux'
+
+- debug:
+    msg: "{{ ansible_facts['bios_version'] }}"
+  register: bios_var
+
+- debug:
+    msg: "{{ ansible_distribution }}"
+  register: bios_var
+
+- name: Run qualys cloud agent shell script for Amazon
+  command: /usr/local/qualys/cloud-agent/bin/qualys-cloud-agent.sh "ActivationId={{ qualys_activation_aws }}" "CustomerId={{ qualys_customer }}"
+  ignore_errors: yes
+  when: "('amazon' in ansible_facts['bios_version']) and (ansible_distribution == 'CentOS' or ansible_distribution == 'RedHat' or ansible_distribution == 'Red Hat' or ansible_distribution == 'OracleLinux')"
+
+- name: Run qualys cloud agent shell script for Yonkers
+  command: /usr/local/qualys/cloud-agent/bin/qualys-cloud-agent.sh "ActivationId={{ qualys_activation_yonkers }}" "CustomerId={{ qualys_customer }}"
+  ignore_errors: yes
+  when: "('amazon' not in ansible_facts['bios_version']) and (ansible_distribution == 'CentOS' or ansible_distribution == 'RedHat' or ansible_distribution == 'Red Hat' or ansible_distribution == 'OracleLinux')"
+
+- name: Create a symbolic link (Bug in script, creates .conf file but app references .properties file)
+  file:
+    src: /etc/qualys/cloud-agent/qualys-cloud-agent.conf
+    dest: /etc/qualys/cloud-agent/qualys-cloud-agent.properties
+    state: link
+
+- name: restart qualys service
+  systemd:
+    name: "{{ item }}"
+    state: started
+  with_items:
+    - qualys-cloud-agent
+  when:
+    - ansible_distribution == 'CentOS' or ansible_distribution == 'RedHat' or ansible_distribution == 'OracleLinux'

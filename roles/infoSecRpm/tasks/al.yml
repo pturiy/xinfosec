@@ -1,0 +1,32 @@
+---
+- name: Retrieve AL rpm from nexus
+  maven_artifact:
+    group_id: AlertLogic
+    artifact_id: al-agent-latest
+    version: 1.x86_64
+    extension: rpm
+    classifier: ''
+    repository_url: http://nexus.crinfra.net:8081/nexus/repository/thirdparty
+    dest: /tmp
+  when: ansible_distribution == 'CentOS' or ansible_distribution == 'RedHat' or ansible_distribution == 'OracleLinux'
+
+- name: Install AL rpm package
+  yum:
+     name: /tmp/al-agent-latest.rpm
+     state: present
+  when: ansible_distribution == 'CentOS' or ansible_distribution == 'RedHat' or ansible_distribution == 'OracleLinux'
+
+- name: provision AL key
+  command: /etc/init.d/al-agent provision --key "{{ al_key }}"
+  ignore_errors: yes
+  when: ansible_distribution == 'CentOS' or ansible_distribution == 'RedHat' or ansible_distribution == 'OracleLinux'
+
+- name: stop al-agent
+  command: /etc/init.d/al-agent stop
+  ignore_errors: yes
+  when: ansible_distribution == 'CentOS' or ansible_distribution == 'RedHat' or ansible_distribution == 'OracleLinux'
+
+- name: start al-agent
+  command: /etc/init.d/al-agent start
+  ignore_errors: yes
+  when: ansible_distribution == 'CentOS' or ansible_distribution == 'RedHat' or ansible_distribution == 'OracleLinux'

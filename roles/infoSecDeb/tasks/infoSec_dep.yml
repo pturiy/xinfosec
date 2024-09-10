@@ -1,0 +1,9 @@
+---
+- name: Install yum packages
+  apt:
+    name: "{{item}}"
+    state: latest
+  with_items:
+    - unzip
+    - python-lxml
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
